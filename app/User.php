@@ -26,4 +26,11 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /* RELATIONS */
+
+    public function devices()
+    {
+        return $this->hasMany(Device::class);
+    }
 }
