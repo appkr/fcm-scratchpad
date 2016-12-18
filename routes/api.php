@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-use LaravelFCM\Message\OptionsBuilder;
-use LaravelFCM\Message\PayloadDataBuilder;
-use LaravelFCM\Message\PayloadNotificationBuilder;
+use App\Services\FCMHandler;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,32 +20,23 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/devices', 'DevicesController@upsert');
 
+Route::get('fcm', function (Request $request, FCMHandler $fcm) {
+    $user = $request->user();
+    $to = $user->devices()->pluck('push_service_id')->toArray();
+
+    if (! empty($to)) {
+        $message = array_merge(
+            $user->toArray(),
+            ['foo' => 'bar']
+        );
+
+        $fcm->to($to)->send($message);
+    }
+
+    return response()->json([
+        'success' => 'HTTP 요청 처리 완료'
+    ]);
+})->middleware('auth.basic.once');
+
 Route::put('foo', 'FooController@bar');
 
-Route::get('fcm', function () {
-    $optionBuiler = new OptionsBuilder();
-    $optionBuiler->setTimeToLive(60*20);
-
-    $notificationBuilder = new PayloadNotificationBuilder('알림 제목');
-    $notificationBuilder->setBody('알림 본문')->setSound('default');
-
-    $dataBuilder = new PayloadDataBuilder();
-    $dataBuilder->addData(['foo' => 'bar']);
-
-    $option = $optionBuiler->build();
-    $notification = $notificationBuilder->build();
-    $data = $dataBuilder->build();
-
-    $token = 'eIrjxWASTb0:APA91bF8mv9AdXMAxQ0ALcvFJ4zvfzLxDs7LmGXrKB4btklQKuhcD94KTJV7tCghnxSQMAsShTjzjWHfWDC1aXe_JAQO0Ao4nuFEfpQI0QaUyX7Mh0aFm1RLVDhcP7nAArzaxF6jBFJx';
-
-    $downstreamResponse = app('fcm.sender')->sendTo($token, $option, $notification, $data);
-
-    var_dump('raw', $downstreamResponse);
-    var_dump('get_class_methods', get_class_methods($downstreamResponse));
-    var_dump('numberSuccess', $downstreamResponse->numberSuccess());
-    var_dump('numberFailure', $downstreamResponse->numberFailure());
-    var_dump('numberModification', $downstreamResponse->numberModification());
-    var_dump('tokensToDelete', $downstreamResponse->tokensToDelete());
-    var_dump('tokensToModify', $downstreamResponse->tokensToModify());
-    var_dump('tokensToRetry', $downstreamResponse->tokensToRetry());
-});

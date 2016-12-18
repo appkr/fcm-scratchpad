@@ -33,6 +33,6 @@ $factory->define(App\Device::class, function () use ($faker) {
         'operator' => $faker->randomElement(['SKTelecom', 'olleh', 'LGU+']),
         'api_level' => rand(16, 24),
         'push_service_enum' => 'FCM',
-        'push_service_id' => str_random(162),
+        'push_service_id' => str_random(152),
     ];
 });

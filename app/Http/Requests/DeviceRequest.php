@@ -30,7 +30,7 @@ class DeviceRequest extends FormRequest
             'operator' => 'string',
             'api_level' => 'numeric',
             'push_service_enum' => 'in:FCM',
-            'push_service_id' => 'size:162',
+            'push_service_id' => 'size:152',
         ];
     }
 }
