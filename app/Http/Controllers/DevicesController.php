@@ -18,7 +18,7 @@ class DevicesController extends Controller
         $device = $user->devices()
             ->whereDeviceId($request->device_id)->first();
 
-        $input = $request->all();
+        $input = $request->getInput();
 
         if (!$device) {
             $device = $user->devices()->create($input);
