@@ -14,29 +14,11 @@ use App\Services\FCMHandler;
 |
 */
 
-Route::get('/user', function (Request $request) {
+Route::get('user', function (Request $request) {
     return $request->user();
 })->middleware('auth.basic.once');
 
-Route::post('/devices', 'DevicesController@upsert');
-
-Route::get('fcm', function (Request $request, FCMHandler $fcm) {
-    $user = $request->user();
-    $to = $user->devices()->pluck('push_service_id')->toArray();
-
-    if (! empty($to)) {
-        $message = array_merge(
-            $user->toArray(),
-            ['foo' => 'bar']
-        );
-
-        $fcm->to($to)->send($message);
-    }
-
-    return response()->json([
-        'success' => 'HTTP 요청 처리 완료'
-    ]);
-})->middleware('auth.basic.once');
+Route::post('devices', 'DevicesController@upsert');
 
 Route::put('foo', 'FooController@bar');
 

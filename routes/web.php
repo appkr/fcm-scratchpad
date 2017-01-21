@@ -17,4 +17,19 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index');
+Route::get('home', 'HomeController@index');
+
+Route::get('users', [
+    'as' => 'users.index',
+    'uses' => 'UsersController@index'
+]);
+
+Route::get('users/{user}/fcm', [
+    'as' => 'fcm.create',
+    'uses' => 'FcmController@create'
+]);
+
+Route::post('fcm', [
+    'as' => 'fcm.send',
+    'uses' => 'FcmController@send'
+]);

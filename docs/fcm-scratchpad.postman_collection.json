@@ -1,0 +1,65 @@
+{
+	"id": "a4959500-708f-1331-ecce-6eaa3d7ff03e",
+	"name": "fcm-scratchpad",
+	"description": "",
+	"order": [
+		"4709b59a-5d2b-0044-e1cf-24d471430a07",
+		"f2bd2ae0-35d6-15a1-fce2-54ba9eb1787a"
+	],
+	"folders": [],
+	"timestamp": 0,
+	"owner": "736341",
+	"public": false,
+	"requests": [
+		{
+			"id": "4709b59a-5d2b-0044-e1cf-24d471430a07",
+			"headers": "Content-Type: application/json\nAuthorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=\nAccept: application/json\n",
+			"url": "http://:host/api/user",
+			"preRequestScript": null,
+			"pathVariables": {
+				"host": "fcm-scratchpad.dev"
+			},
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": null,
+			"currentHelper": "basicAuth",
+			"helperAttributes": {
+				"id": "basic",
+				"username": "user@example.com",
+				"password": "secret",
+				"saveToRequest": true
+			},
+			"time": 1485012165973,
+			"name": "사용자 로그인 확인",
+			"description": "## 로그인 API\n\nHTTP 기본 인증으로 사용자 로그인이 잘 되는 지 확인하기 위한 API 입니다.\n\n클라이언트에서는 로그인하고자 하는 사용자의 이메일과 비밀번호를 이용하여 Base 64 인코딩된 토큰을 만들고 `Authorization` 요청헤더에 `Basic` 스킴으로 달아서 보내야 합니다.",
+			"collectionId": "a4959500-708f-1331-ecce-6eaa3d7ff03e",
+			"rawModeData": "{\n  \"device_id\": \"cmvyfIxQbKC9YUCR\",\n  \"os_enum\": \"ANDROID\",\n  \"model\": \"LG-F999L\",\n  \"operator\": \"LG U+\",\n  \"api_level\": 24,\n  \"push_service_enum\": \"FCM\",\n  \"push_service_id\": \"fU7R6dXZswueSPluq71abVi3vTkR5V9b23giRnFn7a9BQX63Pw3gD2fUxkzt8qNp5mlrRtQ1ODgz5gOsy6B9OAsuK9lKrTDu6HF46jR4NTQAoxXU3vspX9xlfUkZBHp8ekrJO8cEF8eKR2mt2YRvFhHhVXkaEP2A4V\",\n  \"app_version_code\": 1\n}"
+		},
+		{
+			"id": "f2bd2ae0-35d6-15a1-fce2-54ba9eb1787a",
+			"headers": "Content-Type: application/json\nAuthorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=\nAccept: application/json\n",
+			"url": "http://:host/api/devices",
+			"preRequestScript": null,
+			"pathVariables": {
+				"host": "fcm-scratchpad.dev"
+			},
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"tests": null,
+			"currentHelper": "basicAuth",
+			"helperAttributes": {
+				"id": "basic",
+				"username": "user@example.com",
+				"password": "secret",
+				"saveToRequest": true
+			},
+			"time": 1485013121535,
+			"name": "단말기 등록 및 정보 업데이트",
+			"description": "## 단말기 등록 및 업데이트 API\n\n단말기를 등록합니다. 이미 등록된 단말기이면 업데이트합니다.\n\n### 요청 본문\n\n필드|형식|필수|설명\n---|---|---|---\n`device_id`|`string`|필수|공장초기화 전에는 바뀌지 않는 단말기의 고유 식별값\n`os_enum`|`enum(string)`|필수|`ANDOIRD` or `IOS`\n`push_service_id`|`string`|필수|FCM으로부터 받은 단말기 고유 식별값\n`push_service_enum`|`enum(string)`|선택|기본값 `FCM`\n`model`|`string`|선택|모델명\n`operator`|`string`|선택|가입된 이통통신사\n`api_level`|`integer`|선택|클라이언트 앱의 SDK API 버전\n",
+			"collectionId": "a4959500-708f-1331-ecce-6eaa3d7ff03e",
+			"rawModeData": "{\n  \"device_id\": \"ffffffff-a55e-8e0f-0fc8-6f030033c587\",\n  \"os_enum\": \"IOS\",\n  \"model\": \"LG-F999L\",\n  \"operator\": \"LG U+\",\n  \"api_level\": 24,\n  \"push_service_enum\": \"FCM\",\n  \"push_service_id\": \"eIrjxWASTb0:APA91bF8mv9AdXMAxQ0ALcvFJ4zvfzLxDs7LmGXrKB4btklQKuhcD94KTJV7tCghnxSQMAsShTjzjWHfWDC1aXe_JAQO0Ao4nuFEfpQI0QaUyX7Mh0aFm1RLVDhcP7nAArzaxF6jBFJx\"\n}"
+		}
+	]
+}

@@ -81,6 +81,9 @@ class FCMHandler
 
         $response = $this->fire();
 
+        // 디버깅을 위해 요청 Payload와 FCM 서버의 첫번째 응답을 로그에 남깁니다.
+        \Log::info('FCM broadcast', [var_export($data, true), var_export($response, true)]);
+
         if ($response->numberModification() > 0) {
             // 단말기 공장 초기화 등의 이유로 registration_id(push_service_id)가 바뀌었습니다.
             $tokens = $response->tokensModify();
