@@ -1,6 +1,6 @@
 ## FCM Scratchpad
 
-FCM(Firebase Cloud Message)은 Android, iOS, Web 등의 클라이언트에 푸쉬 메시지를 보낼 수 있도록 하는 Google의 서비스입니다. 과거 GCM(Google Cloud Message)이 진화한거죠. 
+FCM(Firebase Cloud Message)은 Android, iOS, Web 등의 클라이언트에 푸쉬 메시지를 보낼 수 있도록 하는 Google의 서비스입니다. 과거 GCM(Google Cloud Message)이 진화한거죠.
 
 ### 1. 프로젝트 설치
 
@@ -33,25 +33,25 @@ $ cd fcm-scratchpad
 ```
 
 [Firebase Console](https://console.firebase.google.com/)을 방문해서 새 프로젝트를 만든후 서버 키와 발신자 ID를 얻을 수 있습니다. 얻은 키는 `.env` 파일에 기록해주세요.
- 
+
 ```bash
 # .env
 
 FCM_SERVER_KEY=여기에 서버 키를 넣는다
 FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 ```
- 
+
 ### 2. FCM 작동 원리
- 
+
 다음은 FCM 프로젝트 등록 및 단말기 등록 과정입니다.
- 
+
 - Firebase 콘솔에서 프로젝트를 등록합니다. 이때 모바일 애플리케이션의 패키지 이름도 등록합니다.
 - [단말] 모바일 애플리케이션을 처음 시작할 때 FCM SDK가 FCM 서버와 통신해서 해당 단말을 식별할 수 있는 고유한 토큰(`registration_id`)을 얻을 수 있습니다.
 - [단말] 방금 받은 토큰을 앱 서버에 제출합니다. 이 프로젝트가 앱 서버 프로젝트입니다.
 - [서버] 토큰 저장을 요청한 단말(사용자)를 식별하고, 데이터베이스에 저장합니다.
 
 이제 FCM을 보낼 준비가 되었으므로, FCM을 전송하는 과정을 살펴볼게요.
- 
+
 - [서버] 푸쉬 메시지를 보낼 단말의 토큰(`registration_id`)를 식별합니다.
 - [서버] FCM 서버에 토큰 목록과 단말에 보낼 메시지를 전달합니다.
 - [FCM 서버] 요청 받은 메시지를 단말기에게 보냅니다. FCM의 장점은 단말이 꺼져있거나, 잠김 상태일 때도 메시지를 안전하게 보낼 수 있다는 장점이 있습니다.
@@ -76,7 +76,7 @@ FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 
 #### 3.3. STEP 3
 
-테스트 UI를 통해서 앱 서버에 토큰이 잘 등록됐나 확인합니다. 
+테스트 UI를 통해서 앱 서버에 토큰이 잘 등록됐나 확인합니다.
 
 이 프로젝트는 다음 테스트 UI를 제공합니다.
 
@@ -107,3 +107,11 @@ FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 
 [2016-12-18 08:37:12] Laravel-FCM.INFO: notification send to 1 devices success: 0 failures: 1 number of modified token : 0  [] []
 ```
+
+### 4. 모바일 클라이언트
+
+#### 4.1. Android
+
+이 프로젝트와 연동해서 동작하는 Android 클라이언트를 brownsoo님이 제공해주셨습니다. 상세한 사용법은 [이 저장소](https://github.com/brownsoo/fcm-scratchpad-android/)를 참조해 주세요. 아래는 서버에서 전송한 FCM 메시지를 단말에서 출력한 화면입니다.
+
+![](https://github.com/appkr/fcm-scratchpad/raw/master/docs/image-04.png)
