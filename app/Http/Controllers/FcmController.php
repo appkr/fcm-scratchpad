@@ -33,7 +33,7 @@ class FcmController extends Controller
         $data = $request->getFcmPayload();
 
         if (! empty($to)) {
-            $response = $fcm->to($to)->send($data);
+            $response = $fcm->to($to)->data($data)->send();
         }
 
         return redirect(route('users.index'))->with(

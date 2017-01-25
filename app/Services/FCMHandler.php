@@ -7,26 +7,33 @@ use LaravelFCM\Message\OptionsBuilder;
 use LaravelFCM\Message\PayloadDataBuilder;
 use LaravelFCM\Message\PayloadNotificationBuilder;
 use LaravelFCM\Response\DownstreamResponse;
+use Log;
 
+/**
+ * Class FCMHandler
+ * @package App\Services
+ */
 class FCMHandler
 {
-    /**
-     * 푸쉬 메시지를 보낼 단말기의 push_service_id(push_service_id) 목록.
-     *
-     * @var array[string $push_service_id]
-     */
-    protected $to = [];
+    /** @var array FCM을 수신한 registration_id 목록 */
+    private $to = [];
 
-    /**
-     * 보낼 메시지.
-     *
-     * @var array[string $key => string $value]
-     */
-    protected $data = [];
+    /** @var array FCM 데이터 메시지 본문 */
+    private $data = [];
 
-    /**
-     * @var \LaravelFCM\Sender\FCMSender
-     */
+    /** @var string FCM 알림 제목 */
+    private $title;
+
+    /** @var string FCM 알림 본문 */
+    private $body;
+
+    /** @var array 전송 실패시 재시도 간격 */
+    private $retryIntervals = [1, 2, 4];
+
+    /** @var int 전송 실패시 재시도 카운트 */
+    private $retryIndex = 0;
+
+    /** @var \LaravelFCM\Sender\FCMSender */
     protected $fcm;
 
     /**
@@ -36,27 +43,15 @@ class FCMHandler
      *  [
      *      'optionBuilder' => \LaravelFCM\Message\Options,
      *      'notificationBuilder' => \LaravelFCM\Message\PayloadNotification,
-     *      'data' => \LaravelFCM\Message\PayloadData
+     *      'dataBuilder' => \LaravelFCM\Message\PayloadData
      *  ]
      */
     private $cache = [];
 
     /**
-     * FCMHandler constructor.
-     * @param array $to[string $push_service_id]
-     * @param array $data[string $key => string $value]
-     */
-    public function __construct(array $to = [], $data = [])
-    {
-        $this->to = $to;
-        $this->data = $data;
-        $this->fcm = app('fcm.sender');
-    }
-
-    /**
      * 푸쉬 메시지를 보낼 단말기의 registration_id 목록을 설정합니다.
      *
-     * @param array $to[string $push_service_id]
+     * @param array $to
      * @return $this
      */
     public function to(array $to)
@@ -67,52 +62,84 @@ class FCMHandler
     }
 
     /**
-     * 푸쉬 메시지 전송을 라이브러리에 위임하고, 전송 결과를 처리합니다.
+     * 푸쉬 메시지로 보낼 데이터 본문을 설정합니다.
      *
-     * @param array $data[string $key => string $value]
-     * @return DownstreamResponse
-     * @throws \Exception
+     * @param array $data
+     * @return $this
      */
-    public function send($data = [])
+    public function data(array $data)
     {
         $this->data = $data;
-        $retryCount = 0;
-        $retryInterval = [1, 2, 4];
+
+        return $this;
+    }
+
+    /**
+     * 푸쉬 메시지로 보낼 알림 제목과 본문을 설정합니다.
+     *
+     * @param string $title
+     * @param string $body
+     * @return $this
+     */
+    public function notification(string $title = null, string $body = null)
+    {
+        $this->title = $title;
+        $this->body = $body;
+
+        return $this;
+    }
+
+    /**
+     * 메시지 전송 실패시 재시도 간격과 회수를 설정합니다.
+     *
+     * @param array[int] $intervals
+     * @return $this
+     */
+    public function retryIntervals(array $intervals = [])
+    {
+        if (! empty($intervals)) {
+            $this->retryIntervals = $intervals;
+        }
+
+        return $this;
+    }
+
+    /**
+     * 푸쉬 메시지 전송을 라이브러리에 위임하고, 전송 결과를 처리합니다.
+     *
+     * @param int $sleep
+     * @return DownstreamResponse
+     * @throws Exception
+     */
+    public function send($sleep = 0)
+    {
+        sleep($sleep);
 
         $response = $this->fire();
-
-        // 디버깅을 위해 요청 Payload와 FCM 서버의 첫번째 응답을 로그에 남깁니다.
-        \Log::info('FCM broadcast', [var_export($data, true), var_export($response, true)]);
+        $this->log($response);
 
         if ($response->numberModification() > 0) {
-            // 단말기 공장 초기화 등의 이유로 registration_id(push_service_id)가 바뀌었습니다.
+            // 메시지는 성공적으로 전달되었습니다.
+            // 단말기 공장 초기화 등의 이유로 구글 FCM Server에 등록된 registration_id가 바뀌었습니다.
             $tokens = $response->tokensModify();
             $this->updateDevices($tokens);
         }
 
         if ($response->numberFailure() > 0) {
-
             if ($tokens = $response->tokensToDelete()) {
                 // 해당 registration_id를 가진 단말기가 구글 FCM 서비스에 등록되어 있지 않습니다.
                 $this->deleteDevices($tokens);
             }
 
             if ($tokens = $response->tokensToRetry()) {
+                // 구글 FCM Server가 5xx 응답을 반환했습니다.
                 $this->to($tokens);
 
-                if (isset($retryInterval[$retryCount])) {
+                if (isset($this->retryIntervals[$this->retryIndex])) {
                     // 메시지 전송에 실패했습니다.
-                    // 1,2,4초 간격으로 총 세 번 재 시도합니다.
-                    sleep($retryInterval[$retryCount]);
-                    $response = $this->send();
-                    $retryCount += 1;
-                }
-
-                if ($response->numberFailure()) {
-                    // 세 번을 재시도했음에도 성공하지 못했습니다.
-                    throw new \Exception(
-                        '푸쉬 메시지를 보낼 수 없습니다.: ' .
-                        implode(PHP_EOL, $response->tokensWithError())
+                    // static::$retryIntervals에 설정된 간격으로 재시도합니다.
+                    $this->send(
+                        $this->retryIntervals[$this->retryIndex++]
                     );
                 }
             }
@@ -128,10 +155,15 @@ class FCMHandler
      */
     protected function fire()
     {
-        return $this->fcm->sendTo(
+        /** @var FCMSender $fcmSender */
+        $fcmSender = app('fcm.sender');
+        $notification = ($this->title && $this->body)
+            ? $this->buildNotification() : null;
+
+        return $fcmSender->sendTo(
             $this->getTo(),
             $this->buildOption(),
-            null,
+            $notification,
             $this->buildPayload()
         );
     }
@@ -139,7 +171,7 @@ class FCMHandler
     /**
      * 중복 수신자를 제거한 수신자 목록을 반환합니다.
      *
-     * @return array[string $push_service_id]
+     * @return array
      */
     protected function getTo()
     {
@@ -158,7 +190,10 @@ class FCMHandler
         }
 
         $optionBuilder = new OptionsBuilder();
-        $optionBuilder->setTimeToLive(60*20);
+//        $optionBuilder->setCollapseKey('collapse_key');
+//        $optionBuilder->setDelayWhileIdle(true);
+//        $optionBuilder->setTimeToLive(60*2);
+//        $optionBuilder->setDryRun(false);
 
         return $this->cache['optionBuilder'] = $optionBuilder->build();
     }
@@ -166,18 +201,16 @@ class FCMHandler
     /**
      * (단말기의 Notification Center에 표시될) 알림 제목과 본문을 설정합니다.
      *
-     * @param string $title
-     * @param string $body
      * @return \LaravelFCM\Message\PayloadNotification
      */
-    protected function buildNotification(string $title, string $body)
+    protected function buildNotification()
     {
         if (array_key_exists('notificationBuilder', $this->cache)) {
             return $this->cache['notificationBuilder'];
         }
 
-        $notificationBuilder = new PayloadNotificationBuilder($title);
-        $notificationBuilder->setBody($body)->setSound('default');
+        $notificationBuilder = new PayloadNotificationBuilder();
+        $notificationBuilder->setTitle()->setBody()->setSound('default');
 
         return $this->cache['notificationBuilder'] = $notificationBuilder->build();
     }
@@ -189,20 +222,20 @@ class FCMHandler
      */
     protected function buildPayload()
     {
-        if (array_key_exists('data', $this->cache)) {
-            return $this->cache['data'];
+        if (array_key_exists('dataBuilder', $this->cache)) {
+            return $this->cache['dataBuilder'];
         }
 
         $dataBuilder = new PayloadDataBuilder();
         $dataBuilder->addData($this->data);
 
-        return $this->cache['data'] = $dataBuilder->build();
+        return $this->cache['dataBuilder'] = $dataBuilder->build();
     }
 
     /**
      * 변경된 단말기의 토큰을 DB에 기록합니다.
      *
-     * @param array[string $oldKey => string $newKey] $tokens
+     * @param array[$oldKey => $newKey] $tokens
      * @return bool
      */
     protected function updateDevices(array $tokens)
@@ -219,7 +252,7 @@ class FCMHandler
     /**
      * 유효하지 않은 단말기 토큰을 DB에서 삭제합니다.
      *
-     * @param array[string $push_service_id] $tokens
+     * @param array[$token] $tokens
      * @return bool
      */
     protected function deleteDevices(array $tokens) {
@@ -229,5 +262,35 @@ class FCMHandler
         }
 
         return true;
+    }
+
+    /**
+     * 로그를 남깁니다.
+     *
+     * @param DownstreamResponse $response
+     */
+    protected function log(DownstreamResponse $response)
+    {
+        $logMessage = sprintf(
+            "FCM broadcast (%dth try) send to %d devices success %d, fail %d, number of modified token %d.",
+            $this->retryIndex,
+            count($this->getTo()),
+            $response->numberSuccess(),
+            $response->numberFailure(),
+            $response->numberModification()
+        );
+
+        $rawRequest = json_encode([
+            'to' => $this->getTo(),
+            'notification' => [
+                'title' => $this->title,
+                'body' => $this->body,
+            ],
+            'data' => $this->data,
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+        $rawResponse = var_export($response, true);
+
+        Log::info($logMessage . PHP_EOL . $rawRequest . PHP_EOL . $rawResponse);
     }
 }
