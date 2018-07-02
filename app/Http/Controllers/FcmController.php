@@ -6,34 +6,24 @@ use App\Http\Requests\CreateFcmRequest;
 use App\Services\FCMHandler;
 use App\User;
 use LaravelFCM\Response\DownstreamResponse;
+use View;
 
 class FcmController extends Controller
 {
-    /**
-     * FCM으로 전송할 메시지를 입력받을 폼을 출력합니다.
-     *
-     * @param User $user
-     * @return \Illuminate\Http\Response
-     */
     public function create(User $user)
     {
-        return view('fcm.create')->with('user_id', $user->id);
+        return View::make('fcm.create')->with('user_id', $user->id);
     }
 
-    /**
-     * FCM 메시지를 전송합니다.
-     *
-     * @param CreateFcmRequest $request
-     * @param FCMHandler $fcm
-     * @return \Illuminate\Http\Response
-     */
-    public function send(CreateFcmRequest $request, FCMHandler $fcm)
+    public function send(CreateFcmRequest $request, FCMHandler $fcmHandler)
     {
         $to = $request->getReceivers();
-        $data = $request->getFcmPayload();
+        $message = $request->getFcmMessage();
 
         if (! empty($to)) {
-            $response = $fcm->to($to)->data($data)->send();
+            $fcmHandler->setReceivers($to);
+            $fcmHandler->setMessage($message);
+            $response = $fcmHandler->sendMessage();
         }
 
         return redirect(route('users.index'))->with(
