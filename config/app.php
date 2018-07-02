@@ -168,6 +168,8 @@ return [
          */
 
         LaravelFCM\FCMServiceProvider::class,
+        App\Providers\FCMServiceProvider::class,
+        App\Providers\CustomizedLoggingProvider::class,
 
         /*
          * Application Service Providers...

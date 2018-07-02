@@ -6,21 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class DeviceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
         return [
@@ -34,10 +24,7 @@ class DeviceRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return array
-     */
-    public function getInput()
+    public function getDeviceAttributes()
     {
         return [
             'device_id' => $this->getValue('device_id'),
@@ -50,22 +37,19 @@ class DeviceRequest extends FormRequest
         ];
     }
 
-    /**
-     * 입력값을 변환합니다.
-     *
-     * @param string $key
-     * @param mixed|null $default
-     * @param callable|null $filter
-     * @return array|null|string
-     */
-    protected function getValue($key, $default = null, callable $filter = null)
+    protected function getValue(string $key, $default = null, callable $filter = null)
     {
-        $value = $this->has($key) ? $this->input($key) : $default;
-
-        if (is_null($filter) || ! is_callable($filter)) {
-            return $value;
+        $value = $this->exists($key) ? $this->input($key) : $default;
+        $hasValidFilterGiven = ((null !== $filter) && is_callable($filter));
+        if (is_array($value)) {
+            $hasValidValueGiven = (! empty(array_filter($value)));
+        } else {
+            $hasValidValueGiven = (mb_strlen($value) > 0);
+        }
+        if ($hasValidFilterGiven && $hasValidValueGiven) {
+            return call_user_func($filter, $value);
         }
 
-        return call_user_func($filter, [$value]);
+        return $value;
     }
 }
