@@ -98,15 +98,15 @@ FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 
 그림 1 사용자 목록 조회 페이지
 
-![](https://github.com/appkr/fcm-scratchpad/raw/master/docs/image-01.png)
+![](docs/image-01.png)
 
 그림 2 FCM 메시지 작성 폼
 
-![](https://github.com/appkr/fcm-scratchpad/raw/master/docs/image-02.png)
+![](docs/image-02.png)
 
 그림 3 FCM 메시지 전송 결과
 
-![](https://github.com/appkr/fcm-scratchpad/raw/master/docs/image-03.png)
+![](docs/image-03.png)
 
 #### 3.4. STEP 4
 
@@ -125,4 +125,4 @@ FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 
 이 프로젝트와 연동해서 동작하는 Android 클라이언트를 brownsoo님이 제공해주셨습니다. 상세한 사용법은 [이 저장소](https://github.com/brownsoo/fcm-scratchpad-android/)를 참조해 주세요. 아래는 서버에서 전송한 FCM 메시지를 단말에서 출력한 화면입니다.
 
-![](https://github.com/appkr/fcm-scratchpad/raw/master/docs/image-04.png)
+![](docs/image-04.png)
