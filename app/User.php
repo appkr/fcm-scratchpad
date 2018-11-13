@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @property string $email
  * @property string $password
  * @property string $remember_token
- * @property-read Device $device
+ * @property-read Collection|Device[] $devices
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @mixin \Eloquent
@@ -45,5 +46,10 @@ class User extends Authenticatable
     public function devices()
     {
         return $this->hasMany(Device::class);
+    }
+
+    public function getPushServiceIds()
+    {
+        return $this->devices->pluck('push_service_id')->all();
     }
 }

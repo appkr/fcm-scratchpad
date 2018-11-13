@@ -41,6 +41,16 @@ FCM_SERVER_KEY=여기에 서버 키를 넣는다
 FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 ```
 
+아래 과정은 선택사항입니다. 로그 tail 하면 어떤 일들이 벌어지는지 관찰할 수 있습니다.
+
+```bash
+# in terminal session 1
+~/fcm-scratchpad $ tail -f storage/logs/laravel.log
+
+# in terminal session 2
+~/fcm-scratchpad $ vendor/bin/phpunit
+```
+
 ### 2. FCM 작동 원리
 
 다음은 FCM 프로젝트 등록 및 단말기 등록 과정입니다.
@@ -100,12 +110,13 @@ FCM_SENDER_ID=여기에 발신자 ID를 넣는다
 
 #### 3.4. STEP 4
 
-`storage/logs/laravel-fcm.log` 에서도 전송 결과를 확인할 수 있어요.
+`storage/logs/laravel.log` 에서도 전송 결과를 확인할 수 있어요.
 
 ```bash
-# storage/logs/laravel-fcm.log
+# storage/logs/laravel.log
 
-[2016-12-18 08:37:12] Laravel-FCM.INFO: notification send to 1 devices success: 0 failures: 1 number of modified token : 0  [] []
+[2018-11-13 09:33:57] local.DEBUG: [FcmHandler] 푸쉬 알림을 전송합니다. {"receivers":["eI..Jx"],"message":{"first_field":"foo","second_field":"bar"}}
+[2018-11-13 09:33:57] local.DEBUG: [FcmHandler] 푸쉬 알림을 전송했습니다. {"receiver":["eI..Jx"]}
 ```
 
 ### 4. 모바일 클라이언트

@@ -167,7 +167,7 @@ return [
          * Package Service Providers...
          */
 
-        App\Providers\CustomizedLoggingProvider::class,
+        App\Providers\FcmServiceProvider::class,
 
         /*
          * Application Service Providers...
