@@ -23,9 +23,10 @@ class CreateFcmRequest extends FormRequest
 
     public function getReceivers()
     {
+        /** @var User $user */
         $user = User::findOrFail($this->get('user_id'));
 
-        return $user->devices()->pluck('push_service_id')->toArray();
+        return $user->getPushServiceIds();
     }
 
     public function getFcmMessage()

@@ -1,0 +1,24 @@
+language: php
+
+php:
+- 7.0
+
+sudo: false
+
+install:
+- composer self-update
+- travis_retry composer install --no-interaction --no-scripts --dev
+
+before_script:
+- TRAVIS=true
+- chmod 775 storage bootstrap/cache
+- touch database/database.sqlite
+- cp .env.example .env
+- php artisan clear-compiled --verbose
+- php artisan optimize --force --verbose
+- php artisan cache:clear --verbose
+
+script: vendor/bin/phpunit
+
+matrix:
+  fast_finish: true

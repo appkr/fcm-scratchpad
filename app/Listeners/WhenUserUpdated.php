@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\UserUpdated;
-use App\Services\FCMHandler;
+use App\Services\FcmHandler;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 // ShouldQueue라는 빈 인터페이스를 구현하면 이벤트를 처리하기 위해 작업 큐를 이용합니다.
@@ -13,38 +13,29 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class WhenUserUpdated implements ShouldQueue
 {
     /**
-     * @var FCMHandler
+     * @var FcmHandler
      */
     private $fcm;
 
-    /**
-     * Create the event listener.
-     *
-     * @param FCMHandler $fcm
-     */
-    public function __construct(FCMHandler $fcm)
+    public function __construct(FcmHandler $fcm)
     {
         $this->fcm = $fcm;
     }
 
-    /**
-     * Handle the event.
-     *
-     * @param  UserUpdated  $event
-     * @return void
-     */
     public function handle(UserUpdated $event)
     {
         $user = $event->getUser();
-        $to = $user->devices()->pluck('push_service_id')->toArray();
+        $receivers = $user->getPushServiceIds();
 
-        if (! empty($to)) {
+        if (! empty($receivers)) {
             $message = array_merge(
                 $user->toArray(),
                 ['foo' => 'bar']
             );
 
-            $this->fcm->to($to)->send($message);
+            $this->fcm->setReceivers($receivers);
+            $this->fcm->setMessage($message);
+            $this->fcm->sendMessage();
         }
     }
 }

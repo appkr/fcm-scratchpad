@@ -167,9 +167,7 @@ return [
          * Package Service Providers...
          */
 
-        LaravelFCM\FCMServiceProvider::class,
-        App\Providers\FCMServiceProvider::class,
-        App\Providers\CustomizedLoggingProvider::class,
+        App\Providers\FcmServiceProvider::class,
 
         /*
          * Application Service Providers...
